@@ -17,7 +17,7 @@ from unsloth import FastVisionModel, is_bf16_supported
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
 
-import config as cfg
+import scripts.config as cfg
 
 
 def parse_args():

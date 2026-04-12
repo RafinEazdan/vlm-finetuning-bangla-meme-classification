@@ -14,7 +14,7 @@ from pathlib import Path
 
 from unsloth import FastVisionModel
 
-import config as cfg
+import scripts.config as cfg
 
 
 def load_finetuned_model(adapter_dir: str = None, load_in_4bit: bool = None):

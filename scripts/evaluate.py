@@ -15,8 +15,8 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 
-import config as cfg
-from load_model import load_finetuned_model, load_train_metadata
+import scripts.config as cfg
+from scripts.load_model import load_finetuned_model, load_train_metadata
 
 
 def parse_args():
