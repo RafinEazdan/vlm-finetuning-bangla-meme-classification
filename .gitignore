@@ -3,3 +3,13 @@ venv
 .env
 
 Train
+
+.DS_Store
+__pycache__
+.ipynb_checkpoints
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
