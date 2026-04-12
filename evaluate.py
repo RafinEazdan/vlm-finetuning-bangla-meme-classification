@@ -7,6 +7,7 @@ Usage:
 
 import argparse
 import json
+from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
@@ -38,8 +39,8 @@ def predict_label(model, tokenizer, image, instruction):
     ]
     input_text = tokenizer.apply_chat_template(messages, add_generation_prompt=True)
     inputs = tokenizer(
-        image,
-        input_text,
+        images=image,
+        text=input_text,
         add_special_tokens=False,
         return_tensors="pt",
     ).to(model.device)
@@ -94,8 +95,8 @@ def main():
     # Run predictions
     correct = 0
     total = 0
-    per_class_correct = {lab: 0 for lab in labels}
-    per_class_total = {lab: 0 for lab in labels}
+    per_class_correct = defaultdict(int)
+    per_class_total = defaultdict(int)
     prediction_rows = []
 
     for _, row in tqdm(test_df.iterrows(), total=len(test_df), desc="Evaluating"):

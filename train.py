@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image
 from sklearn.model_selection import train_test_split
+from torch.utils.data import Dataset
 from unsloth import FastVisionModel, is_bf16_supported
 from unsloth.trainer import UnslothVisionDataCollator
 from trl import SFTTrainer, SFTConfig
@@ -61,27 +62,37 @@ def load_and_split_data(data_dir: Path):
     return train_df, val_df, test_df, labels, image_dir
 
 
-def make_conversations(df, image_dir, instruction):
-    def row_to_conversation(row):
-        image = Image.open(image_dir / row["Image_name"]).convert("RGB")
+class ConversationDataset(Dataset):
+    """Lazily loads images on __getitem__ to avoid holding all images in memory."""
+
+    def __init__(self, df: pd.DataFrame, image_dir: Path, instruction: str):
+        self.image_names = df["Image_name"].tolist()
+        self.targets = df["Target"].astype(str).tolist()
+        self.image_dir = image_dir
+        self.instruction = instruction
+
+    def __len__(self):
+        return len(self.image_names)
+
+    def __getitem__(self, idx):
+        image = Image.open(self.image_dir / self.image_names[idx]).convert("RGB")
         return {
             "messages": [
                 {
                     "role": "user",
                     "content": [
                         {"type": "image", "image": image},
-                        {"type": "text", "text": instruction},
+                        {"type": "text", "text": self.instruction},
                     ],
                 },
                 {
                     "role": "assistant",
                     "content": [
-                        {"type": "text", "text": str(row["Target"])},
+                        {"type": "text", "text": self.targets[idx]},
                     ],
                 },
             ]
         }
-    return [row_to_conversation(r) for _, r in df.iterrows()]
 
 
 def main():
@@ -113,8 +124,8 @@ def main():
     # Save test split for evaluation
     test_df.to_csv(output_dir / "test_split.csv", index=False)
 
-    train_dataset = make_conversations(train_df, image_dir, instruction)
-    val_dataset = make_conversations(val_df, image_dir, instruction)
+    train_dataset = ConversationDataset(train_df, image_dir, instruction)
+    val_dataset = ConversationDataset(val_df, image_dir, instruction)
     print(f"Train convos: {len(train_dataset)} | Val convos: {len(val_dataset)}")
 
     # --- Apply LoRA ---
