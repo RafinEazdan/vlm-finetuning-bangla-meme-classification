@@ -1,0 +1,29 @@
+{
+  "overall": {
+    "correct": 238,
+    "total": 290,
+    "accuracy": 0.8206896551724138
+  },
+  "per_class": {
+    "Genders": {
+      "correct": 55,
+      "total": 71,
+      "accuracy": 0.7746478873239436
+    },
+    "Neutral": {
+      "correct": 75,
+      "total": 96,
+      "accuracy": 0.78125
+    },
+    "Politics": {
+      "correct": 51,
+      "total": 60,
+      "accuracy": 0.85
+    },
+    "Religion": {
+      "correct": 57,
+      "total": 63,
+      "accuracy": 0.9047619047619048
+    }
+  }
+}
