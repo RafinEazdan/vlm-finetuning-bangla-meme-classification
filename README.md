@@ -11,11 +11,11 @@ The goal is simple. Given a meme image, the model reads the image and replies wi
 - **Politics**
 - **Religion**
 
-We take a pretrained vision language model and teach it to do this task using a small Bangla meme dataset. We use QLoRA so that fine tuning stays light and can run on a single GPU.
+I take a pretrained vision language model and teach it to do this task using a small Bangla meme dataset. I use QLoRA so that fine tuning stays light and can run on a single GPU.
 
 ## Dataset
 
-We use the Bangla meme dataset introduced in the paper below. The dataset has meme images paired with target labels, and it was built to study target aware aggression in memes.
+I use the Bangla meme dataset introduced in the paper below. The dataset has meme images paired with target labels, and it was built to study target aware aggression in memes.
 
 > Ahsan, S., Hossain, E., Sharif, O., Das, A., Hoque, M. M., and Dewan, M. *A Multimodal Framework to Detect Target Aware Aggression in Memes.* In Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers), pages 2487-2500, 2024.
 
@@ -31,11 +31,11 @@ We use the Bangla meme dataset introduced in the paper below. The dataset has me
 
 The raw data lives under [Train/](Train/) and contains an image folder plus a CSV file with the `Image_name` and `Target` columns.
 
-**Note on captions.** The original dataset also ships a text caption for each training meme. In this project we ignore that column on purpose and train the VLM with only image and label pairs. The idea is to let the vision language model read the meme directly from pixels, without leaning on a precomputed caption as a shortcut.
+**Note on captions.** The original dataset also ships a text caption for each training meme. In this project I ignore that column on purpose and train the VLM with only image and label pairs. The idea is to let the vision language model read the meme directly from pixels, without leaning on a precomputed caption as a shortcut.
 
 ## Model
 
-We fine tune **Qwen2-VL-2B-Instruct** using the Unsloth library. The base model is loaded in 4 bit to save memory, and we attach LoRA adapters on top. Only the language side is trained. The vision encoder stays frozen.
+I fine tune **Qwen2-VL-2B-Instruct** using the Unsloth library. The base model is loaded in 4 bit to save memory, and I attach LoRA adapters on top. Only the language side is trained. The vision encoder stays frozen.
 
 Main model settings:
 
@@ -50,7 +50,7 @@ Main model settings:
 
 ### Why Unsloth
 
-We picked Unsloth instead of plain Hugging Face Transformers for a few practical reasons:
+I picked Unsloth instead of plain Hugging Face Transformers for a few practical reasons:
 
 - **Memory friendly.** Unsloth fuses its own kernels for attention and MLP, and pairs that with 4 bit loading through bitsandbytes. A 2B parameter VLM that would normally need around 12 to 16 GB of VRAM in fp16 fits comfortably inside a single free tier Kaggle T4 (16 GB) with room left for batch and activations.
 - **Faster training.** The custom Triton kernels and gradient checkpointing mode (`use_gradient_checkpointing="unsloth"`) cut wall clock time by roughly 2x compared to a vanilla PEFT + Transformers setup on the same hardware. For a small project like this, that turns an overnight run into an afternoon run.
@@ -61,7 +61,7 @@ In short, Unsloth is the cheapest path to a working QLoRA fine tune on a small G
 
 ## Data Preprocessing
 
-Before training, we clean the images using [data_preprocessing.py](data_preprocessing.py). This step does a few simple things:
+Before training, I clean the images using [data_preprocessing.py](data_preprocessing.py). This step does a few simple things:
 
 1. Drops any image that is fully grayscale, since colour information is a useful signal for memes.
 2. Resizes each image so the longest side is at most 1024 pixels.
@@ -120,7 +120,7 @@ The evaluation saves two files:
 
 ## Results
 
-We trained three separate runs for 2, 3, and 7 epochs and evaluated each on the same 290 meme test split. The full metric files live under [Results/](Results/):
+I trained three separate runs for 2, 3, and 7 epochs and evaluated each on the same 290 meme test split. The full metric files live under [Results/](Results/):
 
 - [Results/epoch-2-results/test_metrics.json](Results/epoch-2-results/test_metrics.json)
 - [Results/epoch-3-results/test_metrics.json](Results/epoch-3-results/test_metrics.json)
@@ -150,7 +150,7 @@ A few observations:
 
 ### Why 2 Epochs is the Best Choice
 
-Given the numbers above, the 2 epoch checkpoint is the one we recommend for deployment:
+Given the numbers above, the 2 epoch checkpoint is the one I recommend for deployment:
 
 - **Best macro accuracy.** 83.24 percent macro beats both 3 and 7 epochs. On an imbalanced test split, macro is the honest score and epoch 2 wins it.
 - **No regression on any class.** Compared to 3 epochs it is better on 3 out of 4 classes. Compared to 7 epochs it is better on Religion and Politics and only worse on Genders.
@@ -164,7 +164,7 @@ In short, 2 epochs is the Pareto optimal point on this setup: it matches the bes
 
 A few things stand out when you look past the overall number for the recommended 2 epoch run:
 
-- **The classes are imbalanced in the test split.** Neutral is the largest bucket with 96 samples, then Genders with 71, Politics with 60, and Religion with only 63. A flat overall accuracy hides this. The macro average accuracy (the mean of the four per class numbers) is about 83.24 percent, which is actually a touch higher than the micro average of 82.07 percent. That tells us the model is not just winning by memorising the biggest class.
+- **The classes are imbalanced in the test split.** Neutral is the largest bucket with 96 samples, then Genders with 71, Politics with 60, and Religion with only 63. A flat overall accuracy hides this. The macro average accuracy (the mean of the four per class numbers) is about 83.24 percent, which is actually a touch higher than the micro average of 82.07 percent. That tells me the model is not just winning by memorising the biggest class.
 
 - **Religion is almost saturated.** 62 out of 63 correct is 98.41 percent. Religion memes in Bangla often carry very distinct visual markers (symbols, robes, places of worship, iconography) and specific script cues. The VLM locks onto these fast, so even 2 epochs with LoRA are enough. There is very little room left to grow here, and the 7 epoch run confirms it: extra training drops Religion by 8 points.
 
